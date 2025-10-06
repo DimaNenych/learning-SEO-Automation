@@ -1,0 +1,1638 @@
+{
+  "name": "Generation_keywords(ver.2)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "51d923bd-b3c6-46a0-9aa7-bd1b463f7afb",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3712,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "keywords",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_ignored",
+              "condition": "eq",
+              "keyValue": "FALSE"
+            },
+            {
+              "keyName": "client_input_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get Client Input1').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "is_ignored",
+              "fieldValue": "TRUE"
+            }
+          ]
+        }
+      },
+      "id": "aebd06f8-ddd7-46d8-b622-c4412570dff1",
+      "name": "Update Old Keywords",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        64
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "r17iekwlKOhVVDJ8",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "unit": "seconds"
+      },
+      "id": "2a25277c-98dd-40b8-b2fb-cd9363f25ca2",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        64
+      ],
+      "webhookId": "262d0dea-93ae-4296-a95c-9ac031768d52"
+    },
+    {
+      "parameters": {
+        "tableId": "keywords",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "client_input_id",
+              "fieldValue": "={{ $('Get Client Input1').item.json.id }}"
+            },
+            {
+              "fieldId": "keywords",
+              "fieldValue": "={{ $('Prepare keywords1').item.json.keywords }}"
+            },
+            {
+              "fieldId": "is_ignored",
+              "fieldValue": "FALSE"
+            },
+            {
+              "fieldId": "is_seed",
+              "fieldValue": "TRUE"
+            },
+            {
+              "fieldId": "stage",
+              "fieldValue": "TOFU"
+            },
+            {
+              "fieldId": "Parameters",
+              "fieldValue": "={{ $('Prepare keywords1').item.json.best_keywords }}"
+            }
+          ]
+        }
+      },
+      "id": "abad07af-f777-4453-b86c-22167080fd6b",
+      "name": "Create a Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        80
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "r17iekwlKOhVVDJ8",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e2b8f60-6ce7-4735-955b-04c7aa063a1b",
+              "name": "client_input_id",
+              "value": "ae5ca0a0-7732-4373-85cc-00ae30c0b178",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4512,
+        1088
+      ],
+      "id": "3cfc2b3b-f0e0-4ecb-a86a-c2f356c1fe0c",
+      "name": "Input_data1"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "keywords",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "client_input_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.client_input_id }}"
+            },
+            {
+              "keyName": "is_ignored",
+              "condition": "eq",
+              "keyValue": "FALSE"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -4256,
+        1104
+      ],
+      "id": "4b145672-c0c9-47f2-a0cf-fddfc8710ffd",
+      "name": "Get many rows"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        304
+      ],
+      "id": "7d85a022-1634-49ff-9809-e2d94a6131fb",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "TyXiGVLtDg8vdc0w",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an SEO strategist.\n\nInputs\n\nYou will receive:\n\nCANDIDATES — a JSON array of objects with fields\n{ \"keyword\": string, \"volume\": number, \"cpc\": number, \"competition_index\": number, \"score\": number }\n\nSTRATEGY — a JSON object describing the SEO/marketing plan with an explicit keyword_preferences section (see schema below).\n\nICP — a short text describing the ideal customer profile (for relevance scoring).\n\nExpected STRATEGY schema (important)\n{\n  \"overall_strategy\": \"string\",\n  \"funnel_stage\": \"awareness|consideration|conversion\",\n  \"geo\": [\"US\",\"UK\"],\n  \"language\": \"en\",\n  \"keyword_preferences\": {\n    \"required_categories\": [\"generic\",\"brand\",\"feature\"],       // optional\n    \"min_volume\": 0,                                            // optional\n    \"max_competition_index\": 90,                                // optional\n    \"include_terms\": [\"oem\",\"grade a\"],                         // optional\n    \"exclude_terms\": [\"free\",\"cheap\"],                          // optional\n    \"brand_allowlist\": [\"bmw\",\"toyota\",\"mercedes\"],             // optional\n    \"intent_allowlist\": [\"commercial\",\"transactional\",\"mixed\"], // optional, if present in candidates\n    \"diversity\": { \"generic\": 1, \"feature\": 1, \"brand\": 1 },    // desired counts (best-effort)\n    \"tie_breaker\": \"score_then_volume_then_lowest_competition\"  // default behavior\n  }\n}\n\nTask\n\nSelect EXACTLY 3–5 best keywords only from CANDIDATES, aligned with STRATEGY.keyword_preferences and relevant to the ICP.\n\nRules (in order of priority)\n\nDo not invent keywords. Pick only keywords whose exact text exists in CANDIDATES.\n\nHonor keyword_preferences:\n\n- Enforce exclude_terms (hard block).\n- Prefer include_terms, brand_allowlist, and intent_allowlist where applicable.\n- Apply thresholds if present: min_volume, max_competition_index.\n- Aim to satisfy diversity target counts across categories:\n  generic/core (e.g., “cloud software”, “used auto parts”)\n  feature/compatibility (e.g., “API integration”, “VIN check”)\n  brand/category-specific (e.g., “BMW parts”, “Toyota parts”)\n- Respect language/geo hints when relevant to the keyword text.\n\nIf a preference cannot be fully satisfied (insufficient candidates), fallback gracefully and still output 3–5 total.\n\nOptimize primarily for highest score, then higher volume, while keeping competition_index manageable (prefer ≤ 90; avoid 100 if possible).\nIf keyword_preferences.max_competition_index is provided — use that as the cap.\n\nDe-duplicate by text (case-insensitive). If duplicates exist, keep the one with the best score (then volume).\n\nBreak remaining ties using: better ICP relevance, then lower cpc.\n\nOutput\n\nReturn STRICT valid JSON with EXACTLY this shape (no markdown, no commentary):\n{\n\"best_keywords\": [\n{ \"keyword\": \"<exact text from candidates>\", \"volume\": <number>, \"competition_index\": <number>, \"cpc\": <number>, \"score\": <number>, \"reason\": \"<short reason referencing strategy/ICP and metrics>\" }\n]\n}\n\nIn each reason, briefly state why it was picked (e.g., “high score & volume; matches brand_allowlist; within competition cap; covers feature diversity; ICP relevance”).\n\nData\n\nSTRATEGY (JSON):\n{{ $('Economy').item.json.strategy_keyword_preferences_text }}\nICP (text):\n{{ $json.icp }}\n\nCANDIDATES (JSON):\n{{ $('Economy').item.json.best_keywords }}\n---\n\n### Examples\n\nExample 1 — SaaS CRM\n\nCANDIDATES:\n[\n  {\"keyword\": \"crm software\", \"volume\": 12000, \"cpc\": 3.5, \"competition_index\": 70, \"score\": 0.92},\n  {\"keyword\": \"free crm software\", \"volume\": 15000, \"cpc\": 0, \"competition_index\": 100, \"score\": 0.60},\n  {\"keyword\": \"sales pipeline automation\", \"volume\": 3000, \"cpc\": 4.2, \"competition_index\": 65, \"score\": 0.88}\n]\n\nSTRATEGY:\n{\n  \"keyword_preferences\": {\n    \"exclude_terms\": [\"free\"],\n    \"include_terms\": [\"automation\"],\n    \"max_competition_index\": 90\n  }\n}\n\n\nICP:\n\"Small B2B companies in the US looking to automate their sales process\"\nExpected Output:\n{\n  \"best_keywords\": [\n    {\n      \"keyword\": \"crm software\",\n      \"volume\": 12000,\n      \"competition_index\": 70,\n      \"cpc\": 3.5,\n      \"score\": 0.92,\n      \"reason\": \"high score & volume, within competition cap, broad relevance to ICP\"\n    },\n    {\n      \"keyword\": \"sales pipeline automation\",\n      \"volume\": 3000,\n      \"competition_index\": 65,\n      \"cpc\": 4.2,\n      \"score\": 0.88,\n      \"reason\": \"matches include_terms 'automation', strong ICP fit, within thresholds\"\n    }\n  ]\n}\n\n---\n\nExample 2 — Education Platform\n\nCANDIDATES:\n[\n  {\"keyword\": \"online coding courses\", \"volume\": 9000, \"cpc\": 2.0, \"competition_index\": 55, \"score\": 0.90},\n  {\"keyword\": \"python for beginners\", \"volume\": 11000, \"cpc\": 1.8, \"competition_index\": 60, \"score\": 0.93},\n  {\"keyword\": \"best free programming courses\", \"volume\": 15000, \"cpc\": 0, \"competition_index\": 100, \"score\": 0.70}\n]\n\nSTRATEGY:\n{\n  \"keyword_preferences\": {\n    \"exclude_terms\": [\"free\"],\n    \"include_terms\": [\"python\",\"coding\"],\n    \"max_competition_index\": 80\n  }\n}\n\nICP:\n\"University students in the UK seeking affordable online programming education\"\n\nExpected Output:\n{\n  \"best_keywords\": [\n    {\n      \"keyword\": \"python for beginners\",\n      \"volume\": 11000,\n      \"competition_index\": 60,\n      \"cpc\": 1.8,\n      \"score\": 0.93,\n      \"reason\": \"matches include_terms 'python', high score, relevant for students, within comp cap\"\n    },\n    {\n      \"keyword\": \"online coding courses\",\n      \"volume\": 9000,\n      \"competition_index\": 55,\n      \"cpc\": 2.0,\n      \"score\": 0.90,\n      \"reason\": \"matches include_terms 'coding', strong ICP fit, good score & competition balance\"\n    }\n  ]\n}\n\n---\n\nExample 3 — Travel Services\n\nCANDIDATES:\n[\n  {\"keyword\": \"paris city tours\", \"volume\": 7000, \"cpc\": 5.0, \"competition_index\": 75, \"score\": 0.89},\n  {\"keyword\": \"cheap travel paris\", \"volume\": 12000, \"cpc\": 1.0, \"competition_index\": 95, \"score\": 0.70},\n  {\"keyword\": \"luxury france vacation\", \"volume\": 2500, \"cpc\": 6.5, \"competition_index\": 80, \"score\": 0.87}\n]\n\nSTRATEGY:\n{\n  \"keyword_preferences\": {\n    \"exclude_terms\": [\"cheap\"],\n    \"brand_allowlist\": [\"paris\",\"france\"],\n    \"max_competition_index\": 90\n  }\n}\n\nICP:\n\"High-income travelers from the US planning cultural tours in France\"\n\nExpected Output:\n{\n  \"best_keywords\": [\n    {\n      \"keyword\": \"paris city tours\",\n      \"volume\": 7000,\n      \"competition_index\": 75,\n      \"cpc\": 5.0,\n      \"score\": 0.89,\n      \"reason\": \"matches brand_allowlist 'paris', high relevance to ICP, strong score\"\n    },\n    {\n      \"keyword\": \"luxury france vacation\",\n      \"volume\": 2500,\n      \"competition_index\": 80,\n      \"cpc\": 6.5,\n      \"score\": 0.87,\n      \"reason\": \"matches brand_allowlist 'france', fits ICP (luxury travel), within competition cap\"\n    }\n  ]\n}\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        80
+      ],
+      "id": "b90ea8ce-2ddc-42b8-94aa-b01d53403412",
+      "name": "AI Select Best Keywords"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -3008,
+        224
+      ],
+      "id": "4799f3b6-dded-4244-8907-b94b070333cd",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "TyXiGVLtDg8vdc0w",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Вихід: [{ json: { keywords: [...] } }]\n\nfunction toArray(x) {\n  if (!x) return [];\n  if (Array.isArray(x)) return x;\n  if (typeof x === 'string') {\n    // спробуємо розпарсити JSON-текст\n    try {\n      const parsed = JSON.parse(x);\n      if (Array.isArray(parsed)) return parsed;\n      if (parsed && Array.isArray(parsed.best_keywords)) {\n        return parsed.best_keywords.map(o => o.keyword ?? o);\n      }\n      if (Array.isArray(parsed.keywords)) return parsed.keywords;\n    } catch (_) {}\n    // або розбити по рядках/комах\n    return x.split(/\\n|,/).map(s => s.trim()).filter(Boolean);\n  }\n  return [];\n}\n\nfunction normalizeLine(s) {\n  return String(s)\n    .replace(/^[-•*+>\\d.\\)\\s]+/, '')        // маркери списків/нумерація\n    .replace(/```/g, '')                    // code-fences\n    .replace(/^[\"'`]+|[\"'`]+$/g, '')        // лапки/бектики по краях\n    .replace(/^[\\s,\"'`\\[\\]]+/, '')          // зайві символи зліва\n    .replace(/[\\s,\"'`\\[\\],]+$/, '')         // і справа (в т.ч. висячі коми/дужки)\n    .trim()\n    .replace(/\\s+/g, ' ');                  // злиплі пробіли -> один\n}\n\nconst raw =\n  $json.output ??\n  $json.best_keywords ??\n  $json.keywords ??\n  $json;\n\nlet arr = toArray(raw);\n\n// деякі елементи можуть містити \"зліплені\" списки — додатково розіб’ємо\narr = arr.flatMap(v => {\n  if (typeof v === 'string' && /,|\\n/.test(v)) {\n    return v.split(/\\n|,/).map(s => s.trim()).filter(Boolean);\n  }\n  return [v];\n});\n\nconst cleaned = [...new Set(\n  arr\n    .map(normalizeLine)\n    // прибрати службові рядки типу 'keywords: [' або ']'\n    .filter(s => !/^\"?keywords?\"?\\s*:?\\s*\\[$/i.test(s))\n    .filter(s => s !== ']' && s !== '[')\n    // загальні фільтри\n    .filter(Boolean)\n    .filter(s => s.toLowerCase() !== 'json')\n    .filter(s => s !== '```')\n    .filter(s => s.length >= 2 && s.length <= 80)\n    .map(s => s.toLowerCase())             // стабілізуємо регістр\n)]\n// відсікти явну комерцію\n.filter(s => !/(buy|price|for sale|near me|dealer|shop)/i.test(s))\n.slice(0, 20); // не більше 20\n\nreturn [{ json: { keywords: cleaned } }];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        48
+      ],
+      "id": "65181a75-c3c3-407a-8f74-c28d15494d52",
+      "name": "Run Once for All Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const pool = $flow.get('good_pool') ?? [];\nfor (const it of $items()) {\n  const x = it.json;\n  if (!x || !x.keyword) continue;\n  pool.push({\n    keyword: String(x.keyword).trim(),\n    volume: x.volume ?? null,\n    cpc: x.cpc ?? null,\n    competition_index: x.competition_index ?? null,\n    score: x.score ?? null,\n  });\n}\n\n// дедуп за keyword (case-insensitive)\nconst seen = new Set();\nconst deduped = [];\nfor (const k of pool) {\n  const key = k.keyword.toLowerCase();\n  if (seen.has(key)) continue;\n  seen.add(key);\n  deduped.push(k);\n}\n\n$flow.set('good_pool', deduped);\nreturn [{ json: { collected: deduped.length } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4928,
+        992
+      ],
+      "id": "70ddf583-0eba-4d65-8c7a-aa2ebfcee3d1",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an SEO keyword research assistant.\n\nContext you can use:\n- Client Info: {{ $('Get_an_information').item.json.body.client.name }}\n- ICP: {{ $json.icp_full }}\n- Website: {{ $('Get_an_information').item.json.body.website.url }}\n- Strategy (defines funnel stage: TOFU / MOFU / BOFU): \nTOFU : {{ $json.strategy_obj.funnel_stage.TOFU }}\n\nMOFU : {{ $json.strategy_obj.funnel_stage.MOFU }}\n\nBOFU :{{ $json.strategy_obj.funnel_stage.BOFU }}\n\n\nTask:\nInfer the funnel stage from Strategy.\nGenerate EXACTLY 12 short, search-friendly seed keywords relevant to the Client Info + ICP + Website + Categories + Strategy.\n\nRules:\n1) Keywords must be SHORT (1–4 words) and non-transactional (no: buy, price, cheap, near me, dealer).\n2) Respect the funnel stage:\n   - TOFU (awareness) → broad informational, educational, curiosity-driven queries.  \n     Examples (auto parts): \"how to check car part compatibility\", \"are used auto parts reliable\"  \n     Examples (health): \"benefits of meditation\", \"how to improve sleep quality\"  \n     Examples (software): \"what is agile methodology\", \"intro to machine learning\"  \n     Examples (travel): \"best places to visit in Italy\", \"things to do in Tokyo\"  \n   - MOFU (consideration) → problem/solution, product-type queries, comparisons.  \n     Examples (auto parts): \"OEM vs aftermarket parts\", \"best brake pads for SUVs\"  \n     Examples (health): \"yoga vs pilates benefits\", \"protein powder for beginners\"  \n     Examples (software): \"jira alternatives\", \"crm for small business\"  \n     Examples (travel): \"family friendly hotels in Paris\", \"cheap flights comparison tools\"  \n   - BOFU (decision) → brand/model/category focused, ready-to-convert searches.  \n     Examples (auto parts): \"used BMW parts\", \"certified Mercedes engine\"  \n     Examples (health): \"fitbit charge 6 features\", \"genuine Omega 3 capsules\"  \n     Examples (software): \"salesforce pricing\", \"hubspot enterprise features\"  \n     Examples (travel): \"Hilton London reservations\", \"book ryanair tickets\"  \n3) Balance variety:\n   - Generic/core terms (e.g., \"used auto parts\", \"healthy breakfast ideas\", \"project management tools\", \"budget travel guide\")  \n   - Entity/brand terms (pattern: “used [brand] parts”, “[software] alternatives”, “[destination] hotels”)  \n   - Informational/how-to terms (e.g., \"check car parts by VIN\", \"meditation for beginners\", \"setup docker compose\", \"train travel Europe\")  \n   - Context-specific if present in ICP/Website/Strategy/Client Info (e.g., “Kentucky auto parts”, “B2B SaaS tools”, “pet food nutrition guide”)  \n4) Avoid duplicates (case-insensitive) and near-duplicates.\n5) Output STRICT valid JSON in this format:\n\n{\n  \"keywords\": [\n    \"keyword 1\",\n    \"keyword 2\",\n    \"... up to keyword 12\"\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -3008,
+        48
+      ],
+      "id": "8ce27d18-fc40-4883-9ccb-e566d2b528be",
+      "name": "Generation seed-keywords"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mode: Run Once For All Items\nconst src =\n  $json?.result?.[0]?.items ??\n  $json?.result ??\n  $json?.tasks?.[0]?.result ??\n  $json?.tasks ??\n  [];\n\nconst out = [];\nconst seen = new Set();\n\nfor (const it of src) {\n  const kw = (it.keyword || it?.keyword_data?.keyword || '').replace(/^\"|\"$/g, '').trim();\n  if (!kw || seen.has(kw)) continue; seen.add(kw);\n\n  const vol  = it.search_volume ?? it?.keyword_data?.search_volume ?? 0;\n  const cpc  = it.cpc ?? it?.keyword_data?.cpc ?? 0;\n  const comp = it.competition_index ?? it?.keyword_data?.competition_index ?? 0;\n  const intent = String(it.search_intent || it?.keyword_properties?.search_intent || '').toLowerCase();\n\n  // 👉 Тимчасово пом’якши фільтр, щоб перевірити потік\n  if (vol < 100) continue;\n  if (intent && !intent.includes('informational')) continue;\n\n  const vinBoost   = /vin|compatib|fitment/i.test(kw) ? 500 : 0;\n  const brandBoost = /\\b(bmw|mercedes|toyota|honda|ford)\\b/i.test(kw) ? 200 : 0;\n  const trustBoost = /(oem|reliable|quality|inspection|warranty)/i.test(kw) ? 150 : 0;\n\n  const score = vol * 0.7 + (100 - comp) * 2 + cpc * 10 + vinBoost + brandBoost + trustBoost;\n\n  out.push({ keyword: kw, volume: vol, cpc, competition_index: comp, intent, score });\n}\n\n// Якщо після всього порожньо — зробимо fallback: візьмемо вхід як є (без intent-фільтра)\nif (out.length === 0 && Array.isArray(src)) {\n  for (const it of src) {\n    const kw = (it.keyword || it?.keyword_data?.keyword || '').replace(/^\"|\"$/g, '').trim();\n    if (!kw) continue;\n    const vol  = it.search_volume ?? it?.keyword_data?.search_volume ?? 0;\n    const cpc  = it.cpc ?? it?.keyword_data?.cpc ?? 0;\n    const comp = it.competition_index ?? it?.keyword_data?.competition_index ?? 0;\n    const score = vol * 0.7 + (100 - comp) * 2 + cpc * 10;\n    out.push({ keyword: kw, volume: vol, cpc, competition_index: comp, intent: 'unknown', score });\n  }\n}\n\nout.sort((a,b)=> b.score - a.score);\nreturn out.slice(0,10).map(x => ({ json: x }));\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        64
+      ],
+      "id": "f5be6430-54f8-4eea-98eb-3bdf8adb8920",
+      "name": "Parse DFSEO Result"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.dataforseo.com/v3/keywords_data/google_ads/search_volume/task_post",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\n    \"location_name\": \"United States\",\n    \"language_code\": \"en\",\n    \"keywords\": {{ JSON.stringify($json.keywords) }}\n  }\n]\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1808,
+        64
+      ],
+      "id": "c7efbfe1-dd51-43fb-a7cc-da1c34b9aa33",
+      "name": "DFSEO Create Task (search_volume)",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "f4RXDdNrQZdBhdZV",
+          "name": "AlexKey"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ONE node: init _poll + extract task_id(s)\nconst items = $input.all().map(it => it.json || {});\nconst out = [];\n\nfor (const j of items) {\n  // 1) стартові параметри полінгу в payload\n  const base = {\n    ...j,\n    _poll: { tries: 0, delayMs: 1500, maxTries: 10, maxDelayMs: 15000 },\n  };\n\n  // 2) збираємо можливі id з відповіді DataForSEO\n  const ids = [];\n  if (Array.isArray(j.tasks)) {\n    for (const t of j.tasks) {\n      if (t?.id) ids.push(String(t.id));\n      // додаткові fallback'и, якщо колись зміниться структура\n      if (Array.isArray(t.result)) {\n        for (const r of t.result) {\n          if (r?.id && !ids.includes(String(r.id))) ids.push(String(r.id));\n          if (r?.task_id && !ids.includes(String(r.task_id))) ids.push(String(r.task_id));\n        }\n      }\n    }\n  }\n  if (!ids.length && j.id) ids.push(String(j.id));\n  if (!ids.length && j.task_id) ids.push(String(j.task_id));\n\n  if (!ids.length) throw new Error('No task_id returned from DataForSEO');\n\n  // 3) віддаємо по одному item на кожен task_id\n  for (const id of ids) out.push({ json: { ...base, task_id: id } });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        48
+      ],
+      "id": "04bbe44c-840f-4f06-9297-7ac3ca1ae47b",
+      "name": "Extract Task ID"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.dataforseo.com/v3/keywords_data/google_ads/search_volume/task_get/{{ $('DFSEO Create Task (search_volume)').item.json.tasks[0].id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1248,
+        64
+      ],
+      "id": "f804215f-6fe7-45e2-aba6-9f33fa73c89a",
+      "name": "DFSEO Get Task Result",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "f4RXDdNrQZdBhdZV",
+          "name": "AlexKey"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        368,
+        416
+      ],
+      "id": "43b40016-ca73-4e5b-976b-8edd783e5a85",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * TOKEN ECONOMY + КРАЩЕ ВІДОБРАЖЕННЯ В UI\n * - тягнемо дані з інших нод через .first()\n * - підтримка різних назв нод та шляхів (в т.ч. Get_an_information.body.*)\n * - оцінюємо токени (~1 токен ≈ 4 символи), обрізаємо candidates під бюджет\n * - повертаємо і короткі прев’юшки для UI, і повні структури для перевірки/пайплайна\n */\n\n// ====== налаштування під свою модель ======\nconst MODEL_LIMIT = 16000;          // ліміт контексту моделі\nconst RESERVED_FOR_RESPONSE = 2000; // запас на відповідь моделі\nconst SAFETY_BUFFER = 300;          // страховий буфер\nconst REQUEST_BUDGET = MODEL_LIMIT - RESERVED_FOR_RESPONSE - SAFETY_BUFFER;\n\n// ====== утиліти ======\nconst toStr = (x) => (typeof x === 'string' ? x : JSON.stringify(x ?? '', null, 0));\nconst estTokens = (s) => Math.ceil(String(s || '').length / 4);\nconst preview = (s, max = 1200) => {\n  const str = String(s ?? '');\n  return str.length <= max ? str : (str.slice(0, max) + `… [${str.length - max} more chars]`);\n};\n\nfunction safeParseJSON(text) {\n  try { return JSON.parse(String(text)); } catch { return null; }\n}\n\nfunction fromNodeFirst(nodeName, path = []) {\n  try {\n    const n = $(nodeName).first();\n    let v = n?.json;\n    for (const k of path) v = v?.[k];\n    return (v === undefined || v === null) ? '' : v;\n  } catch { return ''; }\n}\n\nfunction firstHit(candidates) {\n  for (const { node, path } of candidates) {\n    const v = fromNodeFirst(node, path);\n    if (v !== '' && v !== undefined && v !== null) return v;\n  }\n  return '';\n}\n\nfunction paginate(arr, pageSize = 50) {\n  const pages = [];\n  for (let i = 0; i < arr.length; i += pageSize) {\n    pages.push(arr.slice(i, i + pageSize));\n  }\n  return pages;\n}\n\n// ====== джерела (підлаштуй назви під свої ноди) ======\n// ICP\nconst icpRaw = firstHit([\n  // класичні варіанти\n  { node: 'Get Client Input',      path: ['icp'] },\n  { node: 'Get_strategie',         path: ['icp'] },\n  // твій вузол Get_an_information (може бути з body або без)\n  { node: 'Get_an_information',    path: ['client_input', 'icp'] },\n  { node: 'Get_an_information',    path: ['body', 'client_input', 'icp'] },\n  { node: 'Get_an_information',    path: ['icp'] },\n  { node: 'Get_an_information',    path: ['body', 'icp'] },\n  // інколи назва з пробілами\n  { node: 'Get an information',    path: ['client_input', 'icp'] },\n  { node: 'Get an information',    path: ['body', 'client_input', 'icp'] },\n  { node: 'Get an information',    path: ['icp'] },\n  { node: 'Get an information',    path: ['body', 'icp'] },\n]);\n\n// Strategy (рядок або об’єкт). Спершу шукаємо content.\nconst strategyRaw = firstHit([\n  { node: 'Get_strategie',         path: ['content'] },\n  { node: 'Get_strategie',         path: [] },\n  { node: 'Get_an_information',    path: ['strategy', 'content'] },\n  { node: 'Get_an_information',    path: ['body', 'strategy', 'content'] },\n  { node: 'Get_an_information',    path: ['strategy'] },\n  { node: 'Get_an_information',    path: ['body', 'strategy'] },\n  { node: 'Get an information',    path: ['strategy', 'content'] },\n  { node: 'Get an information',    path: ['body', 'strategy', 'content'] },\n  { node: 'Get an information',    path: ['strategy'] },\n  { node: 'Get an information',    path: ['body', 'strategy'] },\n]);\n\n// Keyword Prefs\nconst prefsObj = firstHit([\n  { node: 'Extract Keyword Prefs', path: ['strategy_keyword_preferences'] },\n  { node: 'Extract Keyword Prefs', path: [] },\n]) || {};\n\n// ====== кандидати з поточного item ======\nconst current = $json || {};\nlet candidatesInput =\n  Array.isArray(current.candidates_array) ? current.candidates_array\n  : Array.isArray(current.data) ? current.data\n  : [];\n\n// мінімізуємо candidates\nconst minCandidates = candidatesInput.map(k => ({\n  keyword: k.keyword,\n  volume: Math.round(k.volume || 0),\n  cpc: Math.round((k.cpc || 0) * 100) / 100,\n  competition_index: Math.round(k.competition_index || 0),\n  score: Math.round((k.score || 0) * 10) / 10\n}));\n\n// ====== серіалізуємо блоки для оцінки токенів ======\nlet icp_full  = toStr(icpRaw).trim();\nlet strategy  = toStr(strategyRaw).trim();\nlet prefsJson = JSON.stringify(prefsObj ?? {});\nlet candJson  = JSON.stringify(minCandidates ?? []);\n\n// оцінка токенів по блоках\nfunction tokensOfBlocks(obj) {\n  const t = {};\n  let sum = 0;\n  for (const [k, v] of Object.entries(obj)) {\n    t[k] = estTokens(v);\n    sum += t[k];\n  }\n  return { t, sum };\n}\n\nlet blocks = { icp_full, strategy, prefsJson, candJson };\nlet { t: tokens, sum: total_tokens } = tokensOfBlocks(blocks);\n\n// якщо не влізає — обрізаємо candidates (для LLM-контексту)\nif (total_tokens > REQUEST_BUDGET) {\n  const arr = [...minCandidates];\n  while (arr.length && total_tokens > REQUEST_BUDGET) {\n    arr.pop(); // по одному з хвоста\n    candJson = JSON.stringify(arr);\n    ({ t: tokens, sum: total_tokens } = tokensOfBlocks({ icp_full, strategy, prefsJson, candJson }));\n  }\n}\n\n// ====== КРАЩЕ ВІДОБРАЖЕННЯ В UI ======\n// 1) Спроба розпарсити стратегію як JSON\nconst strategyParsed = safeParseJSON(strategy);\n\n// 2) Повні об’єкти (для людини/дебагу)\nconst icp_obj        = (typeof icpRaw === 'object') ? icpRaw : (safeParseJSON(icpRaw) ?? { text: String(icpRaw) });\nconst strategy_obj   = strategyParsed ?? (typeof strategyRaw === 'object' ? strategyRaw : { text: strategy });\nconst prefs_obj_full = prefsObj ?? {};\nconst candidates_min = safeParseJSON(candJson) ?? [];\n\n// 3) Прев’юшки для компактного перегляду\nconst ui_preview = {\n  icp: preview(icp_full),\n  strategy: preview(strategy),\n  keyword_prefs: preview(prefsJson),\n  candidates_json: preview(candJson),\n};\n\n// 4) Пагінація кандидатів\nconst candidates_pages = paginate(candidates_min, 50).map((page, idx) => ({\n  page_index: idx,\n  count: page.length,\n  items: page\n}));\n\n// ====== ВИХІД ======\nreturn [{\n  json: {\n    // --- Дані для LLM (рядки з урахуванням токен-економіки) ---\n    icp_full,\n    strategy,\n    strategy_keyword_preferences_json: prefsJson,\n    candidates_min_json: candJson,\n\n    // --- Повні структури для перегляду/обробки ---\n    icp_obj,\n    strategy_obj,\n    prefs_obj_full,\n    candidates_min,\n\n    // --- Пагінація для UI ---\n    candidates_pages_meta: {\n      pages: candidates_pages.length,\n      total_items: candidates_min.length,\n      page_size: 50\n    },\n    candidates_pages,\n\n    // --- Прев’юшки для UI ---\n    ui_preview,\n\n    // --- Діагностика/ліміти ---\n    model_limit: MODEL_LIMIT,\n    reserved_for_response: RESERVED_FOR_RESPONSE,\n    safety_buffer: SAFETY_BUFFER,\n    request_budget: REQUEST_BUDGET,\n    tokens_by_block: tokens,\n    total_tokens,\n    fits_budget: total_tokens <= REQUEST_BUDGET\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3200,
+        64
+      ],
+      "id": "811e95c0-4e56-4e91-b82d-c7de94c806e1",
+      "name": "token economy"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "client_inputs",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_ignored",
+              "condition": "eq",
+              "keyValue": "FALSE"
+            }
+          ]
+        }
+      },
+      "id": "d70e82ba-552a-43df-96db-1add7a1ace17",
+      "name": "Get Client Input1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        784,
+        32
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "r17iekwlKOhVVDJ8",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = $json.output ?? $json;\nlet obj;\n\nif (typeof text !== 'string') {\n  obj = text;\n} else {\n  try {\n    // видаляємо можливі тріпл-бектіки\n    text = text.replace(/```json|```/g, '').trim();\n    obj = JSON.parse(text);\n  } catch (e) {\n    return [{\n      json: { error: 'LLM returned non-JSON', raw: text }\n    }];\n  }\n}\n\n// отримуємо best_keywords\nconst data = obj.best_keywords || [];\nconst keywords = data.map(k => k.keyword);\n\n// повертаємо і оригінальний об’єкт, і keywords\nreturn [{\n  json: {\n    ...obj,\n    keywords\n  }\n}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        64
+      ],
+      "id": "b43dc3c5-b7cd-4aa3-92d9-c825475729b3",
+      "name": "Prepare keywords1"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * ONE NODE = three previous nodes:\n * 1) Pick Global Best Keywords (по всіх вхідних айтемах)\n * 2) Prepare Candidates (candidates_json / candidates_array)\n * 3) Extract Keyword Preferences (flatten, no arrays) з $('Get_strategie')\n *\n * Mode: Run Once for All Items\n */\n\n// ===================== 1) Pick Global Best Keywords =====================\nconst MIN_VOLUME = 0;            // мінімальний volume\nconst MAX_COMP   = 90;           // максимум competition_index\nconst TOP_N      = 5;            // скільки топових повернути (включно з best_one)\nconst EXCLUDE    = [\"free\", \"cheap\"]; // стоп-слова\n\nconst INPUT = $input.all();\nlet pool = [];\n\n// згортаємо вхід у плаский масив кандидатів\nfor (const it of INPUT) {\n  const j = it.json || {};\n  if (Array.isArray(j.best_keywords)) {\n    for (const k of j.best_keywords) {\n      if (k && k.keyword) pool.push(k);\n    }\n  } else if (j.keyword) {\n    pool.push(j);\n  }\n}\n\n// нормалізація\npool = pool.map(k => ({\n  keyword: String(k.keyword || '').trim(),\n  volume: Number(k.volume || 0),\n  cpc: Number(k.cpc || 0),\n  competition_index: Number(k.competition_index || 0),\n  score: Number(k.score || 0),\n  reason: k.reason ? String(k.reason) : ''\n})).filter(k => k.keyword);\n\n// фільтри\nconst excludeLC = EXCLUDE.map(s => s.toLowerCase());\npool = pool.filter(k => {\n  if (k.volume < MIN_VOLUME) return false;\n  if (k.competition_index > MAX_COMP) return false;\n  const key = k.keyword.toLowerCase();\n  if (excludeLC.some(term => key.includes(term))) return false;\n  return true;\n});\n\n// дедуп + вибір кращого\nconst pickBetter = (a, b) =>\n  (a.score > b.score) ||\n  (a.score === b.score && a.volume > b.volume) ||\n  (a.score === b.score && a.volume === b.volume && a.competition_index < b.competition_index) ||\n  (a.score === b.score && a.volume === b.volume && a.competition_index === b.competition_index && a.cpc < b.cpc);\n\nconst byText = new Map();\nfor (const k of pool) {\n  const key = k.keyword.toLowerCase();\n  const prev = byText.get(key);\n  if (!prev || pickBetter(k, prev)) byText.set(key, k);\n}\nconst unique = Array.from(byText.values());\n\n// глобальне сортування\nunique.sort((a, b) =>\n  (b.score - a.score) ||\n  (b.volume - a.volume) ||\n  (a.competition_index - b.competition_index) ||\n  (a.cpc - b.cpc)\n);\n\n// результат частини (1)\nconst best_keywords = unique.slice(0, Math.max(1, Math.min(TOP_N, unique.length)));\nconst best_one = best_keywords[0] || null;\nconst pickResult = {\n  best_one,\n  best_keywords,\n  pool_size: unique.length,\n  filtered_out: pool.length - unique.length,\n  filters_used: {\n    min_volume: MIN_VOLUME,\n    max_competition_index: MAX_COMP,\n    exclude_terms: EXCLUDE\n  }\n};\n\n// ===================== 2) Prepare Candidates =====================\n// Раніше ти тягнув з $json.data після Aggregate. Тепер Aggregate немає,\n// тому робимо сумісно: якщо у вхідному $json є .data — використаємо його;\n// інакше беремо наш згенерований pickResult.\n// На виході зробимо так само: candidates_array і candidates_json.\n\nlet candidatesSource;\ntry {\n  // якщо попередні ноди все ж підклали data — візьмемо її\n  const j = ($json && typeof $json === 'object') ? $json : {};\n  candidatesSource = j.data ?? j ?? pickResult;\n} catch {\n  candidatesSource = pickResult;\n}\n\n// гарантуємо масив\nconst candidates_array = Array.isArray(candidatesSource)\n  ? candidatesSource\n  : [candidatesSource];\n\nconst candidates_json = JSON.stringify(candidates_array, null, 2);\n\n// ===================== 3) Extract Keyword Preferences =====================\nfunction tryParseJSON(text) {\n  try { return JSON.parse(text); } catch { return null; }\n}\nfunction stripCodeFences(s) {\n  return String(s || '')\n    .replace(/```json/gi, '')\n    .replace(/```/g, '')\n    .trim();\n}\nfunction extractObjWithKey(text, key) {\n  const blocks = String(text).match(/\\{[\\s\\S]*?\\}/g);\n  if (!blocks) return null;\n  for (const b of blocks) {\n    if (b.includes(`\"${key}\"`)) {\n      const parsed = tryParseJSON(b);\n      if (parsed) return parsed;\n    }\n  }\n  return null;\n}\n\nlet rawStrategy;\ntry { rawStrategy = $('Get_strategie').first().json.content; } catch { rawStrategy = undefined; }\n\nlet strategy = {};\nif (rawStrategy && typeof rawStrategy === 'object') {\n  strategy = rawStrategy;\n} else if (typeof rawStrategy === 'string') {\n  strategy = tryParseJSON(rawStrategy) || {};\n  if (!Object.keys(strategy).length) {\n    const stripped = stripCodeFences(rawStrategy);\n    strategy = tryParseJSON(stripped) || strategy;\n  }\n  if (!Object.keys(strategy).length) {\n    const extracted = extractObjWithKey(rawStrategy, 'keyword_preferences');\n    if (extracted) strategy = extracted;\n  }\n}\n\nlet prefs = (strategy && strategy.keyword_preferences) || {};\nif (!prefs || !Object.keys(prefs).length) {\n  prefs = {\n    required_categories: [\"generic\", \"brand\", \"feature\"],\n    min_volume: 0,\n    max_competition_index: 90,\n    include_terms: [\"oem\", \"grade a\"],\n    exclude_terms: [\"free\", \"cheap\"],\n    brand_allowlist: [\"bmw\", \"toyota\", \"mercedes\"],\n    intent_allowlist: [\"commercial\", \"transactional\", \"mixed\"],\n    diversity: { generic: 1, feature: 1, brand: 1 },\n    tie_breaker: \"score_then_volume_then_lowest_competition\"\n  };\n}\n\n// флетимо і робимо текст\nconst strategy_keyword_preferences = {};\nconst lines = [];\nfunction pushKV(key, value) {\n  strategy_keyword_preferences[key] = value;\n  lines.push(`${key}: ${value}`);\n}\nfor (const [k, v] of Object.entries(prefs)) {\n  if (Array.isArray(v)) {\n    v.forEach((item, i) => pushKV(`${k} [${i}]`, item));\n    pushKV(`${k} (count)`, v.length);\n  } else if (v && typeof v === 'object') {\n    for (const [subK, subV] of Object.entries(v)) pushKV(`${k}.${subK}`, subV);\n  } else {\n    pushKV(k, v);\n  }\n}\nconst strategy_keyword_preferences_text = lines.join('\\n');\n\n// ===================== FINAL OUTPUT (об’єднаний) =====================\nreturn [{\n  json: {\n    // 1) результат відбору\n    ...pickResult,\n\n    // 2) кандидати для підстановки у промпт\n    candidates_json,\n    candidates_array,\n\n    // 3) налаштування переваг зі стратегії (без масивів) + текст\n    strategy_keyword_preferences,\n    strategy_keyword_preferences_text\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        64
+      ],
+      "id": "cf398699-a182-4520-81a9-a387e35faa3a",
+      "name": "Economy"
+    },
+    {
+      "parameters": {
+        "jsCode": "// очікуємо структуру tasks[0]\nconst t = ($json.tasks && $json.tasks[0]) || {};\nconst ok = (t.status_code === 20000) && Array.isArray(t.result) && t.result.length > 0;\n\nconst p = $json._poll || { tries: 0, delayMs: 1500, maxTries: 10, maxDelayMs: 15000 };\nlet { tries, delayMs, maxTries, maxDelayMs } = p;\n\nif (!ok) {\n  tries += 1;\n  delayMs = Math.min(delayMs * 2, maxDelayMs) + Math.floor(Math.random() * 300);\n}\n\nreturn [{\n  json: {\n    ...$json,\n    _ready: ok,\n    _poll: { tries, delayMs, maxTries, maxDelayMs },\n  }\n}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        64
+      ],
+      "id": "438ed1c5-e2b3-4961-b94a-3b3d49967b5a",
+      "name": "Poll Check & Backoff"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "43a4b2c3-c52d-4769-97ec-935e2b343c00",
+              "leftValue": "={{ $json._ready }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -832,
+        64
+      ],
+      "id": "90508060-9b9b-4726-829f-2232605c517d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.max(1, Math.min(Math.ceil(($json._poll?.delayMs ?? 1500)/1000), 30)) }}\n"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        336
+      ],
+      "id": "59c83ceb-a258-44df-af93-c8a1fbff3f35",
+      "name": "Wait1",
+      "webhookId": "890ea553-0721-4aa9-bfd3-61d3d2f4f2d7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://pzxounqmvowsyvxgrmxc.supabase.co/rest/v1/rpc/get_workflow_bootstrap\n",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"apikey\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6eG91bnFtdm93c3l2eGdybXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5OTgwODMsImV4cCI6MjA2NzU3NDA4M30.eDLPwcNERVDceJUDtmN7N0j1VfZ5mUptfrLWZgOM_rM\",\n  \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"p_client_id\": \"c3bf9dc0-d5b1-4ac1-8f49-9787cf57f4c1\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 2000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3440,
+        64
+      ],
+      "id": "4a191f5b-ce89-4312-adb6-d78864fa64c3",
+      "name": "Get_an_information",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ejAfWZ3JgxiWZZkv",
+          "name": "DataForSeo"
+        },
+        "httpBearerAuth": {
+          "id": "I54Eok3MTIz4N3C3",
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Parse DFSEO Result": [
+      {
+        "json": {
+          "keyword": "check parts by vin",
+          "volume": 5400,
+          "cpc": 1.32,
+          "competition_index": 47,
+          "intent": "",
+          "score": 4399.199999999999
+        }
+      },
+      {
+        "json": {
+          "keyword": "best brake pads",
+          "volume": 4400,
+          "cpc": 0.87,
+          "competition_index": 100,
+          "intent": "",
+          "score": 3088.7
+        }
+      },
+      {
+        "json": {
+          "keyword": "a plus auto parts",
+          "volume": 2400,
+          "cpc": 2.18,
+          "competition_index": 22,
+          "intent": "",
+          "score": 1857.8
+        }
+      },
+      {
+        "json": {
+          "keyword": "car maintenance tips",
+          "volume": 1900,
+          "cpc": 3.01,
+          "competition_index": 1,
+          "intent": "",
+          "score": 1558.1
+        }
+      },
+      {
+        "json": {
+          "keyword": "oem vs aftermarket",
+          "volume": 1000,
+          "cpc": 1.23,
+          "competition_index": 2,
+          "intent": "",
+          "score": 1058.3
+        }
+      },
+      {
+        "json": {
+          "keyword": "auto parts catalog",
+          "volume": 1000,
+          "cpc": 0.96,
+          "competition_index": 21,
+          "intent": "",
+          "score": 867.6
+        }
+      }
+    ],
+    "AI Select Best Keywords": [
+      {
+        "json": {
+          "output": "{\n  \"best_keywords\": [\n    {\n      \"keyword\": \"oem toyota parts\",\n      \"volume\": 3200,\n      \"competition_index\": 85,\n      \"cpc\": 2.4,\n      \"score\": 0.91,\n      \"reason\": \"matches include_terms 'oem', brand_allowlist 'toyota', meets max competition, high score & volume, fits brand diversity and ICP for trusted OEM parts\"\n    },\n    {\n      \"keyword\": \"grade a used auto parts\",\n      \"volume\": 2800,\n      \"competition_index\": 80,\n      \"cpc\": 1.9,\n      \"score\": 0.89,\n      \"reason\": \"includes include_terms 'grade a', generic category, strong ICP relevance for quality used parts, within competition limit\"\n    },\n    {\n      \"keyword\": \"bmw oem engine parts\",\n      \"volume\": 1800,\n      \"competition_index\": 88,\n      \"cpc\": 3.1,\n      \"score\": 0.93,\n      \"reason\": \"brand_allowlist 'bmw' with include_term 'oem', feature category (engine parts), highest score candidate, meets competition cap, aligns with ICP for specific OEM brand parts\"\n    }\n  ]\n}"
+        }
+      }
+    ],
+    "DFSEO Create Task (search_volume)": [
+      {
+        "json": {
+          "version": "0.1.20250828",
+          "status_code": 20000,
+          "status_message": "Ok.",
+          "time": "0.0567 sec.",
+          "cost": 0.05,
+          "tasks_count": 1,
+          "tasks_error": 0,
+          "tasks": [
+            {
+              "id": "09102041-1142-0110-0000-e9e07aaa19f9",
+              "status_code": 20100,
+              "status_message": "Task Created.",
+              "time": "0.0022 sec.",
+              "cost": 0.05,
+              "result_count": 0,
+              "path": [
+                "v3",
+                "keywords_data",
+                "google_ads",
+                "search_volume",
+                "task_post"
+              ],
+              "data": {
+                "api": "keywords_data",
+                "function": "search_volume",
+                "se": "google_ads",
+                "location_name": "United States",
+                "language_code": "en",
+                "keywords": [
+                  "auto parts guide",
+                  "car part compatibility",
+                  "are used parts reliable",
+                  "how to identify auto parts",
+                  "oem vs aftermarket",
+                  "car maintenance tips",
+                  "a plus auto parts",
+                  "check parts by vin",
+                  "auto parts catalog",
+                  "best brake pads",
+                  "vehicle repair basics",
+                  "engine parts overview"
+                ]
+              },
+              "result": null
+            }
+          ]
+        }
+      }
+    ],
+    "DFSEO Get Task Result": [
+      {
+        "json": {
+          "version": "0.1.20250828",
+          "status_code": 20000,
+          "status_message": "Ok.",
+          "time": "0 sec.",
+          "cost": 0,
+          "tasks_count": 1,
+          "tasks_error": 0,
+          "tasks": [
+            {
+              "id": "09102041-1142-0110-0000-e9e07aaa19f9",
+              "status_code": 20000,
+              "status_message": "Ok.",
+              "time": "0 sec.",
+              "cost": 0,
+              "result_count": 12,
+              "path": [
+                "v3",
+                "keywords_data",
+                "google_ads",
+                "search_volume",
+                "task_get",
+                "09102041-1142-0110-0000-e9e07aaa19f9"
+              ],
+              "data": {
+                "api": "keywords_data",
+                "function": "search_volume",
+                "se": "google_ads",
+                "location_name": "United States",
+                "language_code": "en",
+                "keywords": [
+                  "auto parts guide",
+                  "car part compatibility",
+                  "are used parts reliable",
+                  "how to identify auto parts",
+                  "oem vs aftermarket",
+                  "car maintenance tips",
+                  "a plus auto parts",
+                  "check parts by vin",
+                  "auto parts catalog",
+                  "best brake pads",
+                  "vehicle repair basics",
+                  "engine parts overview"
+                ]
+              },
+              "result": [
+                {
+                  "keyword": "auto parts guide",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": "LOW",
+                  "competition_index": 5,
+                  "search_volume": 70,
+                  "low_top_of_page_bid": null,
+                  "high_top_of_page_bid": null,
+                  "cpc": null,
+                  "monthly_searches": [
+                    {
+                      "year": 2025,
+                      "month": 7,
+                      "search_volume": 50
+                    },
+                    {
+                      "year": 2025,
+                      "month": 6,
+                      "search_volume": 50
+                    },
+                    {
+                      "year": 2025,
+                      "month": 5,
+                      "search_volume": 70
+                    },
+                    {
+                      "year": 2025,
+                      "month": 4,
+                      "search_volume": 70
+                    },
+                    {
+                      "year": 2025,
+                      "month": 3,
+                      "search_volume": 90
+                    },
+                    {
+                      "year": 2025,
+                      "month": 2,
+                      "search_volume": 90
+                    },
+                    {
+                      "year": 2025,
+                      "month": 1,
+                      "search_volume": 50
+                    },
+                    {
+                      "year": 2024,
+                      "month": 12,
+                      "search_volume": 50
+                    },
+                    {
+                      "year": 2024,
+                      "month": 11,
+                      "search_volume": 50
+                    },
+                    {
+                      "year": 2024,
+                      "month": 10,
+                      "search_volume": 70
+                    },
+                    {
+                      "year": 2024,
+                      "month": 9,
+                      "search_volume": 50
+                    },
+                    {
+                      "year": 2024,
+                      "month": 8,
+                      "search_volume": 70
+                    }
+                  ]
+                },
+                {
+                  "keyword": "car part compatibility",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": "LOW",
+                  "competition_index": 22,
+                  "search_volume": 50,
+                  "low_top_of_page_bid": 0.4,
+                  "high_top_of_page_bid": 0.98,
+                  "cpc": 1.41,
+                  "monthly_searches": [
+                    {
+                      "year": 2025,
+                      "month": 7,
+                      "search_volume": 40
+                    },
+                    {
+                      "year": 2025,
+                      "month": 6,
+                      "search_volume": 40
+                    },
+                    {
+                      "year": 2025,
+                      "month": 5,
+                      "search_volume": 30
+                    },
+                    {
+                      "year": 2025,
+                      "month": 4,
+                      "search_volume": 40
+                    },
+                    {
+                      "year": 2025,
+                      "month": 3,
+                      "search_volume": 40
+                    },
+                    {
+                      "year": 2025,
+                      "month": 2,
+                      "search_volume": 30
+                    },
+                    {
+                      "year": 2025,
+                      "month": 1,
+                      "search_volume": 40
+                    },
+                    {
+                      "year": 2024,
+                      "month": 12,
+                      "search_volume": 140
+                    },
+                    {
+                      "year": 2024,
+                      "month": 11,
+                      "search_volume": 170
+                    },
+                    {
+                      "year": 2024,
+                      "month": 10,
+                      "search_volume": 40
+                    },
+                    {
+                      "year": 2024,
+                      "month": 9,
+                      "search_volume": 50
+                    },
+                    {
+                      "year": 2024,
+                      "month": 8,
+                      "search_volume": 50
+                    }
+                  ]
+                },
+                {
+                  "keyword": "are used parts reliable",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": null,
+                  "competition_index": null,
+                  "search_volume": null,
+                  "low_top_of_page_bid": null,
+                  "high_top_of_page_bid": null,
+                  "cpc": null,
+                  "monthly_searches": null
+                },
+                {
+                  "keyword": "how to identify auto parts",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": null,
+                  "competition_index": null,
+                  "search_volume": null,
+                  "low_top_of_page_bid": null,
+                  "high_top_of_page_bid": null,
+                  "cpc": null,
+                  "monthly_searches": null
+                },
+                {
+                  "keyword": "oem vs aftermarket",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": "LOW",
+                  "competition_index": 2,
+                  "search_volume": 1000,
+                  "low_top_of_page_bid": 0.11,
+                  "high_top_of_page_bid": 0.91,
+                  "cpc": 1.23,
+                  "monthly_searches": [
+                    {
+                      "year": 2025,
+                      "month": 7,
+                      "search_volume": 1300
+                    },
+                    {
+                      "year": 2025,
+                      "month": 6,
+                      "search_volume": 1300
+                    },
+                    {
+                      "year": 2025,
+                      "month": 5,
+                      "search_volume": 1300
+                    },
+                    {
+                      "year": 2025,
+                      "month": 4,
+                      "search_volume": 1300
+                    },
+                    {
+                      "year": 2025,
+                      "month": 3,
+                      "search_volume": 1300
+                    },
+                    {
+                      "year": 2025,
+                      "month": 2,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2025,
+                      "month": 1,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2024,
+                      "month": 12,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2024,
+                      "month": 11,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2024,
+                      "month": 10,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2024,
+                      "month": 9,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2024,
+                      "month": 8,
+                      "search_volume": 1000
+                    }
+                  ]
+                },
+                {
+                  "keyword": "car maintenance tips",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": "LOW",
+                  "competition_index": 1,
+                  "search_volume": 1900,
+                  "low_top_of_page_bid": 0.64,
+                  "high_top_of_page_bid": 2.23,
+                  "cpc": 3.01,
+                  "monthly_searches": [
+                    {
+                      "year": 2025,
+                      "month": 7,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 6,
+                      "search_volume": 2900
+                    },
+                    {
+                      "year": 2025,
+                      "month": 5,
+                      "search_volume": 4400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 4,
+                      "search_volume": 1600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 3,
+                      "search_volume": 1900
+                    },
+                    {
+                      "year": 2025,
+                      "month": 2,
+                      "search_volume": 1600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 1,
+                      "search_volume": 2900
+                    },
+                    {
+                      "year": 2024,
+                      "month": 12,
+                      "search_volume": 2900
+                    },
+                    {
+                      "year": 2024,
+                      "month": 11,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2024,
+                      "month": 10,
+                      "search_volume": 880
+                    },
+                    {
+                      "year": 2024,
+                      "month": 9,
+                      "search_volume": 480
+                    },
+                    {
+                      "year": 2024,
+                      "month": 8,
+                      "search_volume": 480
+                    }
+                  ]
+                },
+                {
+                  "keyword": "a plus auto parts",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": "LOW",
+                  "competition_index": 22,
+                  "search_volume": 2400,
+                  "low_top_of_page_bid": 0.43,
+                  "high_top_of_page_bid": 2.47,
+                  "cpc": 2.18,
+                  "monthly_searches": [
+                    {
+                      "year": 2025,
+                      "month": 7,
+                      "search_volume": 2400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 6,
+                      "search_volume": 2400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 5,
+                      "search_volume": 2400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 4,
+                      "search_volume": 2400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 3,
+                      "search_volume": 2400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 2,
+                      "search_volume": 2900
+                    },
+                    {
+                      "year": 2025,
+                      "month": 1,
+                      "search_volume": 1900
+                    },
+                    {
+                      "year": 2024,
+                      "month": 12,
+                      "search_volume": 1900
+                    },
+                    {
+                      "year": 2024,
+                      "month": 11,
+                      "search_volume": 2400
+                    },
+                    {
+                      "year": 2024,
+                      "month": 10,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2024,
+                      "month": 9,
+                      "search_volume": 2400
+                    },
+                    {
+                      "year": 2024,
+                      "month": 8,
+                      "search_volume": 1900
+                    }
+                  ]
+                },
+                {
+                  "keyword": "check parts by vin",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": "MEDIUM",
+                  "competition_index": 47,
+                  "search_volume": 5400,
+                  "low_top_of_page_bid": 0.36,
+                  "high_top_of_page_bid": 1.18,
+                  "cpc": 1.32,
+                  "monthly_searches": [
+                    {
+                      "year": 2025,
+                      "month": 7,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 6,
+                      "search_volume": 2900
+                    },
+                    {
+                      "year": 2025,
+                      "month": 5,
+                      "search_volume": 2900
+                    },
+                    {
+                      "year": 2025,
+                      "month": 4,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 3,
+                      "search_volume": 5400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 2,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 1,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2024,
+                      "month": 12,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2024,
+                      "month": 11,
+                      "search_volume": 5400
+                    },
+                    {
+                      "year": 2024,
+                      "month": 10,
+                      "search_volume": 22200
+                    },
+                    {
+                      "year": 2024,
+                      "month": 9,
+                      "search_volume": 8100
+                    },
+                    {
+                      "year": 2024,
+                      "month": 8,
+                      "search_volume": 3600
+                    }
+                  ]
+                },
+                {
+                  "keyword": "auto parts catalog",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": "LOW",
+                  "competition_index": 21,
+                  "search_volume": 1000,
+                  "low_top_of_page_bid": 0.22,
+                  "high_top_of_page_bid": 1.21,
+                  "cpc": 0.96,
+                  "monthly_searches": [
+                    {
+                      "year": 2025,
+                      "month": 7,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2025,
+                      "month": 6,
+                      "search_volume": 880
+                    },
+                    {
+                      "year": 2025,
+                      "month": 5,
+                      "search_volume": 1600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 4,
+                      "search_volume": 880
+                    },
+                    {
+                      "year": 2025,
+                      "month": 3,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2025,
+                      "month": 2,
+                      "search_volume": 720
+                    },
+                    {
+                      "year": 2025,
+                      "month": 1,
+                      "search_volume": 1300
+                    },
+                    {
+                      "year": 2024,
+                      "month": 12,
+                      "search_volume": 880
+                    },
+                    {
+                      "year": 2024,
+                      "month": 11,
+                      "search_volume": 1300
+                    },
+                    {
+                      "year": 2024,
+                      "month": 10,
+                      "search_volume": 1300
+                    },
+                    {
+                      "year": 2024,
+                      "month": 9,
+                      "search_volume": 1000
+                    },
+                    {
+                      "year": 2024,
+                      "month": 8,
+                      "search_volume": 880
+                    }
+                  ]
+                },
+                {
+                  "keyword": "best brake pads",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": "HIGH",
+                  "competition_index": 100,
+                  "search_volume": 4400,
+                  "low_top_of_page_bid": 0.34,
+                  "high_top_of_page_bid": 2.71,
+                  "cpc": 0.87,
+                  "monthly_searches": [
+                    {
+                      "year": 2025,
+                      "month": 7,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 6,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 5,
+                      "search_volume": 4400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 4,
+                      "search_volume": 4400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 3,
+                      "search_volume": 4400
+                    },
+                    {
+                      "year": 2025,
+                      "month": 2,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2025,
+                      "month": 1,
+                      "search_volume": 3600
+                    },
+                    {
+                      "year": 2024,
+                      "month": 12,
+                      "search_volume": 4400
+                    },
+                    {
+                      "year": 2024,
+                      "month": 11,
+                      "search_volume": 5400
+                    },
+                    {
+                      "year": 2024,
+                      "month": 10,
+                      "search_volume": 5400
+                    },
+                    {
+                      "year": 2024,
+                      "month": 9,
+                      "search_volume": 5400
+                    },
+                    {
+                      "year": 2024,
+                      "month": 8,
+                      "search_volume": 4400
+                    }
+                  ]
+                },
+                {
+                  "keyword": "vehicle repair basics",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": null,
+                  "competition_index": null,
+                  "search_volume": null,
+                  "low_top_of_page_bid": null,
+                  "high_top_of_page_bid": null,
+                  "cpc": null,
+                  "monthly_searches": null
+                },
+                {
+                  "keyword": "engine parts overview",
+                  "spell": null,
+                  "location_code": 2840,
+                  "language_code": "en",
+                  "search_partners": false,
+                  "competition": null,
+                  "competition_index": null,
+                  "search_volume": null,
+                  "low_top_of_page_bid": null,
+                  "high_top_of_page_bid": null,
+                  "cpc": null,
+                  "monthly_searches": null
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get_an_information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Old Keywords": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Create a Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input_data1": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Select Best Keywords",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Select Best Keywords": {
+      "main": [
+        [
+          {
+            "node": "Prepare keywords1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generation seed-keywords",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Once for All Items": {
+      "main": [
+        [
+          {
+            "node": "DFSEO Create Task (search_volume)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generation seed-keywords": {
+      "main": [
+        [
+          {
+            "node": "Run Once for All Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DFSEO Create Task (search_volume)": {
+      "main": [
+        [
+          {
+            "node": "Extract Task ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Task ID": {
+      "main": [
+        [
+          {
+            "node": "DFSEO Get Task Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DFSEO Get Task Result": {
+      "main": [
+        [
+          {
+            "node": "Poll Check & Backoff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse DFSEO Result": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Economy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generation seed-keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "token economy": {
+      "main": [
+        [
+          {
+            "node": "Generation seed-keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Client Input1": {
+      "main": [
+        [
+          {
+            "node": "AI Select Best Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare keywords1": {
+      "main": [
+        [
+          {
+            "node": "Update Old Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Economy": {
+      "main": [
+        [
+          {
+            "node": "Get Client Input1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll Check & Backoff": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Parse DFSEO Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "DFSEO Get Task Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_an_information": {
+      "main": [
+        [
+          {
+            "node": "token economy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "844262d8-ae8c-4773-a8d6-913a4ba6c9eb",
+  "meta": {
+    "instanceId": "399a78206a7588e949d7859c612a38ead22c838112f59de2fb0a950d8e04c92d"
+  },
+  "id": "gl5Z1kgr4Cd5IavN",
+  "tags": []
+}
